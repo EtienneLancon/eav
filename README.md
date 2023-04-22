@@ -1,5 +1,9 @@
 #eav
 
-Entity-attribute-value database structure
+Entity-attribute-value Postgre database structure
 
-Currently trying to add automatic use of Postgre Materialized Views
+Require tablefunc extension
+
+Currently trying to add automatic use of Materialized Views
+
+And Hoping performances will be good.
