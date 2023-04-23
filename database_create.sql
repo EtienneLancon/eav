@@ -113,7 +113,7 @@ create unique index ux_field_id_row_id_int on data_int ("field_id", "row_id");
 create unique index ux_field_id_row_id_string on data_string ("field_id", "row_id");
 create unique index ux_field_id_row_id_timestamp on data_timestamp ("field_id", "row_id");
 create unique index ux_field_id_row_id_bool on data_bool ("field_id", "row_id");
-create unique index ux_field_id_row_id_float on data_float ("field_id", "row_id");
+create unique index ux_field_id_row_id_float on data_float ("field_id", "row_id");table_name
 create unique index ux_field_id_row_id_text on data_text ("field_id", "row_id");
 
 create table relation_type
@@ -192,6 +192,7 @@ create unique index ux_trigger_id_trigger_function_id on trigger_actions ("trigg
 
 create view v_schema as
     select
+        t.id as table_id,
         t.name as table_name,
         f.id as field_id,
         f.name as field_name,
@@ -200,7 +201,9 @@ create view v_schema as
     inner join field f on f.table_id = t.id
     inner join data_type dt on dt.id = f.data_type_id
     union
-    select r.name as table_name,
+    select
+        r.id as table_id, 
+        r.name as table_name,
         f.id as field_id,
         f.name as field_name,
         dt.name as data_type
