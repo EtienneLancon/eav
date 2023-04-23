@@ -15,6 +15,9 @@ drop table if exists data_text;
 drop table if exists relation_keys;
 drop table if exists relation;
 drop table if exists relation_type;
+drop table if exists index_field;
+drop table if exists index_field_type;
+drop table if exists "index";
 drop table if exists "row";
 drop table if exists field;
 drop table if exists data_type;
@@ -53,16 +56,16 @@ create table "index"
     id serial primary key,
     name varchar(100) not null,
     table_id int not null,
-    unique boolean not null,
+    "unique" bool not null,
     constraint fk_table_id foreign key (table_id) references "table" (id)
 );
 
-create unique index ux_name_table_id on "index" ("name", "table_id");
+create unique index ux_index_name_table_id on "index" ("name", "table_id");
 
 create table index_field_type
 (
     id serial primary key,
-    name varchar(20) not null
+    "name" varchar(20) not null
 );
 
 create unique index ux_name_index_field_type on index_field_type ("name");
@@ -84,7 +87,7 @@ create table "row"
 (
     id serial primary key,
     date_inserted timestamp not null,
-    date_updated timestamp
+    date_updated timestamp,
     table_id int not null,
     constraint fk_table_id foreign key (table_id) references "table" (id)
 );
@@ -147,7 +150,7 @@ create unique index ux_field_id_row_id_int on data_int ("field_id", "row_id");
 create unique index ux_field_id_row_id_string on data_string ("field_id", "row_id");
 create unique index ux_field_id_row_id_timestamp on data_timestamp ("field_id", "row_id");
 create unique index ux_field_id_row_id_bool on data_bool ("field_id", "row_id");
-create unique index ux_field_id_row_id_float on data_float ("field_id", "row_id");table_name
+create unique index ux_field_id_row_id_float on data_float ("field_id", "row_id");
 create unique index ux_field_id_row_id_text on data_text ("field_id", "row_id");
 
 create table relation_type
@@ -203,7 +206,7 @@ create table trigger_function
 create table trigger
 (
     id serial primary key,
-    name varchar(100) not null,
+    "name" varchar(100) not null,
     description varchar(255),
     workflow_id int not null,
     table_id int not null,
@@ -223,27 +226,3 @@ create table trigger_actions(
 );
 
 create unique index ux_trigger_id_trigger_function_id on trigger_actions ("trigger_id", "trigger_function_id");
-
-create view v_schema as
-    select
-        t.id as table_id,
-        t.name as table_name,
-        f.id as field_id,
-        f.name as field_name,
-        dt.name as data_type
-    from "table" t
-    inner join field f on f.table_id = t.id
-    inner join data_type dt on dt.id = f.data_type_id
-    union
-    select
-        r.id as table_id, 
-        r.name as table_name,
-        f.id as field_id,
-        f.name as field_name,
-        dt.name as data_type
-    from relation r
-    inner join relation_keys rk on rk.relation_id = r.id
-    inner join field f on f.id = rk.field_id_pk
-    inner join data_type dt on dt.id = f.data_type_id
-    inner join relation_type rt on rt.id = r.relation_type_id
-    where rt.name = 'MANY_TO_MANY';
