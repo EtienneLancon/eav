@@ -5,7 +5,7 @@ drop table if exists "trigger";
 drop table if exists trigger_type;
 drop table if exists workflow;
 drop table if exists data_int;
-drop table if exists data_string;drop view if exists v_schema;
+drop table if exists data_string;
 drop table if exists data_int;
 drop table if exists data_string;
 drop table if exists data_timestamp;

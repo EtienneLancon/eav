@@ -1,9 +1,7 @@
 #eav
 
-Entity-attribute-value Postgre database structure
+Entity-attribute-value Postgre database structure with pure PL\SQL entity handling
 
 Require tablefunc extension
 
-Currently trying to add automatic use of Materialized Views
-
-And Hoping performances will be good.
+Hoping performances will be good
