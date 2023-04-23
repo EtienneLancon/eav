@@ -48,11 +48,45 @@ create table field
 
 create unique index ux_name_table_id on field ("name", "table_id");
 
+create table "index"
+(
+    id serial primary key,
+    name varchar(100) not null,
+    table_id int not null,
+    unique boolean not null,
+    constraint fk_table_id foreign key (table_id) references "table" (id)
+);
+
+create unique index ux_name_table_id on "index" ("name", "table_id");
+
+create table index_field_type
+(
+    id serial primary key,
+    name varchar(20) not null
+);
+
+create unique index ux_name_index_field_type on index_field_type ("name");
+
+create table index_field
+(
+    id serial primary key,
+    index_id int not null,
+    field_id int not null,
+    index_field_type_id int not null,
+    constraint fk_index_id foreign key (index_id) references "index" (id),
+    constraint fk_field_id foreign key (field_id) references field (id),
+    constraint fk_index_field_type_id foreign key (index_field_type_id) references index_field_type (id)
+);
+
+create unique index ux_index_id_field_id on index_field ("index_id", "field_id");
+
 create table "row"
 (
     id serial primary key,
     date_inserted timestamp not null,
     date_updated timestamp
+    table_id int not null,
+    constraint fk_table_id foreign key (table_id) references "table" (id)
 );
 
 CREATE table data_int

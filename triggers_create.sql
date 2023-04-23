@@ -10,7 +10,6 @@ declare
     cfloat refcursor;
     ctext refcursor;
     cname refcursor;
-    c refcursor;
     query text;
     query_int text;
     query_str text;
@@ -20,6 +19,7 @@ declare
     query_text text;
     select_query text;
     columns_query text;
+    columns_final text;
    	row_id int;
   	field_name varchar(100);
     table_name varchar(100);
@@ -31,6 +31,8 @@ begin
                     where f.id = new.id;
 
     fetch cname into table_name;
+
+    close cname;
 
     open cint for execute format('select field_name
                             from v_schema
@@ -63,189 +65,112 @@ begin
                                 and data_type = ''text''') using new.table_id;
 
     --query = 'create materialized view ' || table_name || ' as select * from ';
-    query = '';
-    select_query = '';
     columns_query = '';
-    query_int = '';
+
+    query := ' from row ';
+
+    columns_final = '';
 
     loop
         fetch cint into field_name;
         exit when not found;
-        
-        select_query := select_query || ', data_int.value ';
-        columns_query := columns_query || ', ' || field_name || ' int';
-
+        columns_final := columns_final || ', ' || quote_ident(field_name);
+        columns_query := columns_query || ', ' || quote_ident(field_name) || ' int';
     end loop;
-    close cint;
 
-    if select_query != '' then
-        select_query := 'select data_int.row_id, f.name' || select_query || ' from data_int inner join field f on data_int.field_id = f.id where f.table_id = ' || new.table_id;
+    if columns_query != '' then
+        select_query := 'select data_int.row_id, f.name, data_int.value from data_int inner join field f on data_int.field_id = f.id where f.table_id = ' || new.table_id;
         columns_query := 'row_id int' || columns_query;
-        query_int := '(select * from crosstab(' || quote_literal(select_query) || ') as ct(' || quote_literal(columns_query) || ')) as req_int';
+        query := query || ' left join (select * from crosstab(' || quote_literal(select_query) || ') as ct(' || quote_literal(columns_query) || ')) as req_int on "row".id = req_int.row_id';
     end if;
 
     select_query = '';
     columns_query = '';
-    query_str = '';
-   
-    loop 
+
+    loop
         fetch cstr into field_name;
         exit when not found;
-
-        select_query := select_query || ', data_string.value ';
-        columns_query := columns_query || ', ' || field_name || ' varchar(255)';
-
+        columns_final := columns_final || ', ' || quote_ident(field_name);
+        columns_query := columns_query || ', ' || quote_ident(field_name) || ' varchar(100)';
     end loop;
-    close cstr;
 
-    if select_query != '' then
-        select_query := 'select data_string.row_id, f.name' || select_query || ' from data_string inner join field f on data_string.field_id = f.id where f.table_id = ' || new.table_id;
+    if columns_query != '' then
+        select_query := 'select data_string.row_id, f.name, data_string.value from data_string inner join field f on data_string.field_id = f.id where f.table_id = ' || new.table_id;
         columns_query := 'row_id int' || columns_query;
-        query_str := '(select * from crosstab(' || quote_literal(select_query) || ') as ct(' || columns_query || ')) as req_str';
+        query := query || ' left join (select * from crosstab(' || quote_literal(select_query) || ') as ct(' || columns_query || ')) as req_str on "row".id = req_str.row_id';
     end if;
 
     select_query = '';
     columns_query = '';
-    query_ts = '';
-   
-    loop 
+
+    loop
         fetch cts into field_name;
         exit when not found;
-        
-        select_query := select_query || ', data_timestamp.value ';
-        columns_query := columns_query || ', ' || field_name || ' timestamp';
-
+        columns_final := columns_final || ', ' || quote_ident(field_name);
+        columns_query := columns_query || ', ' || quote_ident(field_name) || ' timestamp';
     end loop;
-    close cts;
     
-    if select_query != '' then
-        select_query := 'select data_timestamp.row_id, f.name' || select_query || ' from data_timestamp inner join field f on data_timestamp.field_id = f.id where f.table_id = ' || new.table_id;
+    if columns_query != '' then
+        select_query := 'select data_timestamp.row_id, f.name, data_timestamp.value from data_timestamp inner join field f on data_timestamp.field_id = f.id where f.table_id = ' || new.table_id;
         columns_query := 'row_id int' || columns_query;
-        query_ts := '(select * from crosstab(' || quote_literal(select_query) || ') as ct(' || columns_query || ')) as req_ts';
+        query := query || ' left join (select * from crosstab(' || quote_literal(select_query) || ') as ct(' || columns_query || ')) as req_ts on "row".id = req_ts.row_id';
     end if;
 
     select_query = '';
     columns_query = '';
-    query_bool = '';
-   
-    loop 
+
+    loop
         fetch cbool into field_name;
         exit when not found;
-        
-        select_query := select_query || ', data_bool.value ';
-        columns_query := columns_query || ', ' || field_name || ' bool';
-
+        columns_final := columns_final || ', ' || quote_ident(field_name);
+        columns_query := columns_query || ', ' || quote_ident(field_name) || ' boolean';
     end loop;
-    close cbool;
     
-    if select_query != '' then
-        select_query := 'select data_bool.row_id, f.name' || select_query || ' from data_bool inner join field f on data_bool.field_id = f.id where f.table_id = ' || new.table_id;
+    if columns_query != '' then
+        select_query := 'select data_bool.row_id, f.name, data_bool.value from data_bool inner join field f on data_bool.field_id = f.id where f.table_id = ' || new.table_id;
         columns_query := 'row_id int' || columns_query;
-        query_bool := '(select * from crosstab(' || quote_literal(select_query) || ') as ct(' || columns_query || ')) as req_bool';
+        query := query || ' left join (select * from crosstab(' || quote_literal(select_query) || ') as ct(' || columns_query || ')) as req_bool on "row".id = req_bool.row_id';
     end if;
 
     select_query = '';
     columns_query = '';
-    query_float = '';
-   
-    loop 
+
+    loop
         fetch cfloat into field_name;
         exit when not found;
-        
-        select_query := select_query || ', data_float.value ';
-        columns_query := columns_query || ', ' || field_name || ' text';
-
+        columns_final := columns_final || ', ' || quote_ident(field_name);
+        columns_query := columns_query || ', ' || quote_ident(field_name) || ' float';
     end loop;
-    close cfloat;
     
-    if select_query != '' then
-        select_query := 'select data_float.row_id, f.name' || select_query || ' from data_float inner join field f on data_float.field_id = f.id where f.table_id = ' || new.table_id;
+    if columns_query != '' then
+        select_query := 'select data_float.row_id, f.name, data_float.value from data_float inner join field f on data_float.field_id = f.id where f.table_id = ' || new.table_id;
         columns_query := 'row_id int' || columns_query;
-        query_float := '(select * from crosstab(' || quote_literal(select_query) || ') as ct(' || columns_query || ')) as req_float';
+        query := query || ' left join (select * from crosstab(' || quote_literal(select_query) || ') as ct(' || columns_query || ')) as req_float on "row".id = req_float.row_id';
     end if;
 
     select_query = '';
     columns_query = '';
-    query_text = '';
-   
-    loop 
+
+    loop
         fetch ctext into field_name;
         exit when not found;
-        
-        select_query := select_query || ', data_text.value ';
-        columns_query := columns_query || ', ' || field_name || ' text';
-
+        columns_final := columns_final || ', ' || quote_ident(field_name);
+        columns_query := columns_query || ', ' || quote_ident(field_name) || ' text';
     end loop;
-    close ctext;
     
-    if select_query != '' then
-        select_query := 'select row_id, f.name' || select_query || ' from data_text dt inner join field f on dt.field_id = f.id where f.table_id = ' || new.table_id;
+    if columns_query != '' then
+        select_query := 'select data_text.row_id, f.name, data_text.value from data_text dt inner join field f on dt.field_id = f.id where f.table_id = ' || new.table_id;
         columns_query := 'row_id int' || columns_query;
-        query_text := '(select * from crosstab(' || quote_literal(select_query) || ') as ct(' || columns_query || ')) as req_text';
+        query := query || ' left join (select * from crosstab(' || quote_literal(select_query) || ') as ct(' || columns_query || ')) as req_text on "row".id = req_text.row_id';
     end if;
 
+    query = 'select id, date_inserted, date_updated' || columns_final || query;
 
-    from_clause_inserted = '';
-
-    if query_int != '' then
-        query := query || query_int;
-        from_clause_inserted = 'req_int';
-    end if;
-
-    if query_str != '' then
-        if from_clause_inserted != '' then
-            query := query || ' inner join ' || query_str || ' on ' || from_clause_inserted || '.row_id = req_str.row_id';
-        else
-            query := query || query_str;
-            from_clause_inserted = 'req_str';
-        end if;
-    end if;
-
-    if query_ts != '' then
-        if from_clause_inserted != '' then
-            query := query || ' inner join ' || query_ts || ' on ' || from_clause_inserted || '.row_id = req_ts.row_id';
-        else
-            query := query || query_ts;
-            from_clause_inserted = 'req_ts';
-        end if;
-    end if;
-
-    if query_bool != '' then
-        if from_clause_inserted != '' then
-            query := query || ' inner join ' || query_bool || ' on ' || from_clause_inserted || '.row_id = req_bool.row_id';
-        else
-            query := query || query_bool;
-            from_clause_inserted = 'req_bool';
-        end if;
-    end if;
-
-    if query_float != '' then
-        if from_clause_inserted != '' then
-            query := query || ' inner join ' || query_float || ' on ' || from_clause_inserted || '.row_id = req_float.row_id';
-        else
-            query := query || query_float;
-            from_clause_inserted = 'req_float';
-        end if;
-    end if;
-
-    if query_text != '' then
-        if from_clause_inserted != '' then
-            query := query || ' inner join ' || query_text || ' on ' || from_clause_inserted || '.row_id = req_text.row_id';
-        else
-            query := query || query_text;
-            from_clause_inserted = 'req_text';
-        end if;
-    end if;
-
-    query := query || ' inner join "row" on ' || from_clause_inserted || '.row_id = "row".id';
-
-
-    raise 'query : %', query;
     execute 'drop materialized view if exists ' || quote_ident(table_name) || '_mv';
 
-    execute format('create materialized view %I_mv as select * from %s', table_name, query);
+    execute format('create materialized view %I_mv as %s', table_name, query);
 
-    close cname;
+    return null;
 end;
 $function$
 ;
@@ -255,3 +180,44 @@ create trigger on_insert_update_refresh_materialized_views
     after insert or update on field
     for each row
     execute function on_new_field_refresh_materialized_views();
+
+
+create function delete_row(int id) returns void
+as $function$
+language plpgsql
+begin
+    delete from data_int where row_id = id;
+    delete from data_string where row_id = id;
+    delete from data_timestamp where row_id = id;
+    delete from data_bool where row_id = id;
+    delete from data_float where row_id = id;
+    delete from data_text where row_id = id;
+    delete from "row" where id = id;
+end;
+$function$
+;
+
+
+create or replace function on_delete_row_refresh_materialized_views() 
+returns trigger
+language plpgsql
+as $function$
+declare
+    table_name varchar(100);
+begin
+    select name into table_name 
+    from "table" t
+    inner join "row" r on t.id = r.table_id
+    where r.id = old.id;
+
+    refresh materialized view concurrently table_name || '_mv';
+
+    return null;
+end;
+$function$
+;
+
+create trigger on_delete_row_refresh_materialized_views
+    after delete on "row"
+    for each row
+    execute function on_delete_row_refresh_materialized_views();

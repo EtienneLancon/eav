@@ -22,19 +22,8 @@ values
 ('float'),
 ('text');
 
-insert into "table" 
-("name")
+insert into index_field_type
+(name)
 values
-('operation'),
-('prestation'),
-('piquetage');
-
-insert into field 
-("name", "data_type_id", "table_id")
-values
-('no', 1, 1),
-('designation', 2, 1),
-('description', 2, 2),
-('date_demarage', 3, 2),
-('date_fin', 3, 2),
-('montant_ht', 5, 3);
+('MAPPING'),
+('INCLUDE')
