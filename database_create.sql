@@ -85,7 +85,7 @@ create unique index ux_index_id_field_id on index_field ("index_id", "field_id")
 
 create table "row"
 (
-    id serial primary key,
+    ui serial primary key,
     date_inserted timestamp not null,
     date_updated timestamp,
     table_id int not null,
@@ -95,63 +95,63 @@ create table "row"
 CREATE table data_int
 (
     field_id int not null,
-    row_id int not null,
+    row_ui int not null,
     value int,
     constraint fk_field_id foreign key (field_id) references field (id),
-    constraint fk_row_id foreign key (row_id) references "row" (id)
+    constraint fk_row_ui foreign key (row_ui) references "row" (ui)
 );
 
 CREATE table data_string
 (
     field_id int not null,
-    row_id int not null,
+    row_ui int not null,
     value varchar(255),
     constraint fk_field_id foreign key (field_id) references field (id),
-    constraint fk_row_id foreign key (row_id) references "row" (id)
+    constraint fk_row_ui foreign key (row_ui) references "row" (ui)
 );
 
 CREATE table data_timestamp
 (
     field_id int not null,
-    row_id int not null,
+    row_ui int not null,
     value timestamp,
     constraint fk_field_id foreign key (field_id) references field (id),
-    constraint fk_row_id foreign key (row_id) references "row" (id)
+    constraint fk_row_ui foreign key (row_ui) references "row" (ui)
 );
 
 CREATE table data_bool
 (
     field_id int not null,
-    row_id int not null,
+    row_ui int not null,
     value boolean,
     constraint fk_field_id foreign key (field_id) references field (id),
-    constraint fk_row_id foreign key (row_id) references "row" (id)
+    constraint fk_row_ui foreign key (row_ui) references "row" (ui)
 );
 
 CREATE table data_float
 (
     field_id int not null,
-    row_id int not null,
+    row_ui int not null,
     value float,
     constraint fk_field_id foreign key (field_id) references field (id),
-    constraint fk_row_id foreign key (row_id) references "row" (id)
+    constraint fk_row_ui foreign key (row_ui) references "row" (ui)
 );
 
 CREATE table data_text
 (
     field_id int not null,
-    row_id int not null,
+    row_ui int not null,
     value text,
     constraint fk_field_id foreign key (field_id) references field (id),
-    constraint fk_row_id foreign key (row_id) references "row" (id)
+    constraint fk_row_ui foreign key (row_ui) references "row" (ui)
 );
 
-create unique index ux_field_id_row_id_int on data_int ("field_id", "row_id");
-create unique index ux_field_id_row_id_string on data_string ("field_id", "row_id");
-create unique index ux_field_id_row_id_timestamp on data_timestamp ("field_id", "row_id");
-create unique index ux_field_id_row_id_bool on data_bool ("field_id", "row_id");
-create unique index ux_field_id_row_id_float on data_float ("field_id", "row_id");
-create unique index ux_field_id_row_id_text on data_text ("field_id", "row_id");
+create unique index ux_field_id_row_ui_int on data_int ("field_id", "row_ui");
+create unique index ux_field_id_row_ui_string on data_string ("field_id", "row_ui");
+create unique index ux_field_id_row_ui_timestamp on data_timestamp ("field_id", "row_ui");
+create unique index ux_field_id_row_ui_bool on data_bool ("field_id", "row_ui");
+create unique index ux_field_id_row_ui_float on data_float ("field_id", "row_ui");
+create unique index ux_field_id_row_ui_text on data_text ("field_id", "row_ui");
 
 create table relation_type
 (
