@@ -314,7 +314,7 @@ begin
     query := query || 'end; $$;';
 
 
-    execute format('drop function if exists row_%I_insert', table_name);
+    execute format('drop function if exists insert_%I', table_name);
     execute query;
 end;
 $function$
