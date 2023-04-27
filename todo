@@ -1,0 +1,5 @@
+ => remove id from create_insert (asks some questions and i need some rest)
+ => function create_update
+ => index view
+ => add indexes on materialized views
+ => probably more

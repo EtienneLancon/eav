@@ -1,7 +1,8 @@
-drop function if exists create_materialized_views;
-drop function if exists delete_row;
+drop function if exists create_materialized_view;
+drop function if exists create_insert;
+drop function if exists create_update;
 
-CREATE OR REPLACE FUNCTION create_materialized_views(modified_id int, table_id int)
+CREATE OR REPLACE FUNCTION create_materialized_view(table_id int)
 returns void
 LANGUAGE plpgsql
 AS $function$
@@ -166,7 +167,7 @@ begin
         query := query || ' left join (select * from crosstab(' || quote_literal(select_query) || ') as ct(' || columns_query || ')) as req_text on "row".ui = req_text.row_ui';
     end if;
 
-    query = 'select "row".ui, "row".date_inserted, "row".date_updated' || columns_final || query;
+    query = 'select "row".ui, "row".date_inserted, "row".date_updated' || columns_final || query || ' where "row".table_id = ' || table_id || ' order by "row".ui';
 
 
     select t."name" into table_name 
@@ -180,12 +181,152 @@ end;
 $function$
 ;
 
+create or replace function create_insert(modified_table_id int)
+returns void
+language plpgsql
+as $function$
+declare
+    cint cursor for
+        select field_id, field_name
+        from v_schema
+        where table_id = modified_table_id
+        and data_type = 'int';
+
+    cstr cursor for
+        select field_id, field_name
+        from v_schema
+        where table_id = modified_table_id
+        and data_type = 'string';
+    
+    cts cursor for
+        select field_id, field_name
+        from v_schema
+        where table_id = modified_table_id
+        and data_type = 'timestamp';
+
+    cbool cursor for
+        select field_id, field_name
+        from v_schema
+        where table_id = modified_table_id
+        and data_type = 'bool';
+
+    cfloat cursor for
+        select field_id, field_name
+        from v_schema
+        where table_id = modified_table_id
+        and data_type = 'float';
+
+    ctext cursor for
+        select field_id, field_name
+        from v_schema
+        where table_id = modified_table_id
+        and data_type = 'text';
+
+    field_id int;
+    field_name varchar(100);
+    data_type varchar(100);
+    table_name varchar(100);
+    query text;
+    insertsint text;
+    insertsstr text;
+    insertsts text;
+    insertsbool text;
+    insertsfloat text;
+    insertstext text;
+begin
+    select t."name" into table_name 
+    from "table" t
+    where t.id = modified_table_id;
+
+    query := 'create function insert_' || table_name || '(';
+
+    insertsint := '';
+    open cint;
+    loop
+        fetch cint into field_id, field_name;
+        exit when not found;
+        query := query || field_name || ' int, ';
+        insertsint := insertsint || 'insert into data_int (row_ui, field_id, value) values (row_ui, ' || field_id || ', ' || field_name || '); ';
+    end loop;
+
+    close cint;
+
+    insertsstr := '';
+    open cstr;
+    loop
+        fetch cstr into field_id, field_name;
+        exit when not found;
+        query := query || field_name || ' varchar(100), ';
+        insertsstr := insertsstr || 'insert into data_string (row_ui, field_id, value) values (row_ui, ' || field_id || ', quote_literal(' || field_name || ')); ';
+    end loop;
+
+    close cstr;
+
+    insertsts := '';
+    open cts;
+    loop
+        fetch cts into field_id, field_name;
+        exit when not found;
+        query := query || field_name || ' timestamp, ';
+        insertsts := insertsts || 'insert into data_timestamp (row_ui, field_id, value) values (row_ui, ' || field_id || ', ' || field_name || '); ';
+    end loop;
+
+    close cts;
+
+    insertsbool := '';
+    open cbool;
+    loop
+        fetch cbool into field_id, field_name;
+        exit when not found;
+        query := query || field_name || ' boolean, ';
+        insertsbool := insertsbool || 'insert into data_bool (row_ui, field_id, value) values (row_ui, ' || field_id || ', ' || field_name || '); ';
+    end loop;
+
+    close cbool;
+
+    insertsfloat := '';
+    open cfloat;
+    loop
+        fetch cfloat into field_id, field_name;
+        exit when not found;
+        query := query || field_name || ' float, ';
+        insertsfloat := insertsfloat || 'insert into data_float (row_ui, field_id, value) values (row_ui, ' || field_id || ', ' || field_name || '); ';
+    end loop;
+
+    close cfloat;
+
+    insertstext := '';
+    open ctext;
+    loop
+        fetch ctext into field_id, field_name;
+        exit when not found;
+        query := query || field_name || ' text, ';
+        insertstext := insertstext || 'insert into data_text (row_ui, field_id, value) values (row_ui, ' || field_id || ', ' || field_name || '); ';
+    end loop;
+
+    close ctext;
+
+    query := substring(query, 1, length(query)-2) || ') returns void language plpgsql as $$ ';
+    query := query || 'declare row_ui int; ';
+    query := query || 'begin ';
+    query := query || 'insert into "row" (table_id) values (' || modified_table_id || ') returning ui into row_ui; ';
+    query := query || insertsint || insertsstr || insertsts || insertsbool || insertsfloat || insertstext;
+    query := query || 'end; $$;';
+
+
+    execute format('drop function if exists row_%I_insert', table_name);
+    execute query;
+end;
+$function$
+;
+
 create or replace function on_field_insert_update_create_materialized_views()
 returns trigger
 language plpgsql
 as $function$
 begin
-    perform create_materialized_views(new.id, new.table_id);
+    perform create_materialized_view(new.table_id);
+    perform create_insert(new.table_id);
     return null;
 end;
 $function$
@@ -196,28 +337,12 @@ returns trigger
 language plpgsql
 as $function$
 begin
-    perform create_materialized_views(old.id, old.table_id);
+    perform create_materialized_view(old.table_id);
+    perform create_insert(old.table_id);
     return null;
 end;
 $function$
 ;
-
-
-create or replace function delete_row(ui int) returns void
-language plpgsql
-as $function$
-begin
-    delete from data_int where row_ui = ui;
-    delete from data_string where row_ui = ui;
-    delete from data_timestamp where row_ui = ui;
-    delete from data_bool where row_ui = ui;
-    delete from data_float where row_ui = ui;
-    delete from data_text where row_ui = ui;
-    delete from "row" where ui = ui;
-end;
-$function$
-;
-
 
 create or replace function on_delete_row_refresh_materialized_views() 
 returns trigger
@@ -238,7 +363,7 @@ end;
 $function$
 ;
 
-create or replace function on_insert_update_row_refresh_materialized_views()
+create or replace function on_update_row_refresh_materialized_views()
 returns trigger
 language plpgsql
 as $function$
@@ -252,6 +377,17 @@ begin
 
     execute format('refresh materialized view concurrently %I_mv', table_name);
 
+    return null;
+end;
+$function$
+;
+
+create or replace function on_update_data_update_row_date_updated()
+returns trigger
+language plpgsql
+as $function$
+begin
+    update "row" set date_updated = now() where ui = new.row_ui;
     return null;
 end;
 $function$

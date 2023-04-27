@@ -86,7 +86,7 @@ create unique index ux_index_id_field_id on index_field ("index_id", "field_id")
 create table "row"
 (
     ui serial primary key,
-    date_inserted timestamp not null,
+    date_inserted timestamp not null default now(),
     date_updated timestamp,
     table_id int not null,
     constraint fk_table_id foreign key (table_id) references "table" (id)
@@ -98,7 +98,7 @@ CREATE table data_int
     row_ui int not null,
     value int,
     constraint fk_field_id foreign key (field_id) references field (id),
-    constraint fk_row_ui foreign key (row_ui) references "row" (ui)
+    constraint fk_row_ui foreign key (row_ui) references "row" (ui) on delete cascade
 );
 
 CREATE table data_string
@@ -107,7 +107,7 @@ CREATE table data_string
     row_ui int not null,
     value varchar(255),
     constraint fk_field_id foreign key (field_id) references field (id),
-    constraint fk_row_ui foreign key (row_ui) references "row" (ui)
+    constraint fk_row_ui foreign key (row_ui) references "row" (ui) on delete cascade
 );
 
 CREATE table data_timestamp
@@ -116,7 +116,7 @@ CREATE table data_timestamp
     row_ui int not null,
     value timestamp,
     constraint fk_field_id foreign key (field_id) references field (id),
-    constraint fk_row_ui foreign key (row_ui) references "row" (ui)
+    constraint fk_row_ui foreign key (row_ui) references "row" (ui) on delete cascade
 );
 
 CREATE table data_bool
@@ -125,7 +125,7 @@ CREATE table data_bool
     row_ui int not null,
     value boolean,
     constraint fk_field_id foreign key (field_id) references field (id),
-    constraint fk_row_ui foreign key (row_ui) references "row" (ui)
+    constraint fk_row_ui foreign key (row_ui) references "row" (ui) on delete cascade
 );
 
 CREATE table data_float
@@ -134,7 +134,7 @@ CREATE table data_float
     row_ui int not null,
     value float,
     constraint fk_field_id foreign key (field_id) references field (id),
-    constraint fk_row_ui foreign key (row_ui) references "row" (ui)
+    constraint fk_row_ui foreign key (row_ui) references "row" (ui) on delete cascade
 );
 
 CREATE table data_text
@@ -143,7 +143,7 @@ CREATE table data_text
     row_ui int not null,
     value text,
     constraint fk_field_id foreign key (field_id) references field (id),
-    constraint fk_row_ui foreign key (row_ui) references "row" (ui)
+    constraint fk_row_ui foreign key (row_ui) references "row" (ui) on delete cascade
 );
 
 create unique index ux_field_id_row_ui_int on data_int ("field_id", "row_ui");
