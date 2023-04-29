@@ -1,4 +1,3 @@
-drop view if exists v_schema;
 drop table if exists trigger_actions;
 drop table if exists trigger_function;
 drop table if exists "trigger";
@@ -57,7 +56,7 @@ create table "index"
     name varchar(100) not null,
     table_id int not null,
     "unique" bool not null,
-    constraint fk_table_id foreign key (table_id) references "table" (id)
+    constraint fk_table_id foreign key (table_id) references "table" (id) on delete cascade
 );
 
 create unique index ux_index_name_table_id on "index" ("name", "table_id");
@@ -75,13 +74,15 @@ create table index_field
     id serial primary key,
     index_id int not null,
     field_id int not null,
+    order_index int not null,
     index_field_type_id int not null,
-    constraint fk_index_id foreign key (index_id) references "index" (id),
-    constraint fk_field_id foreign key (field_id) references field (id),
+    constraint fk_index_id foreign key (index_id) references "index" (id) on delete cascade,
+    constraint fk_field_id foreign key (field_id) references field (id) on delete cascade,
     constraint fk_index_field_type_id foreign key (index_field_type_id) references index_field_type (id)
 );
 
 create unique index ux_index_id_field_id on index_field ("index_id", "field_id");
+create unique index ux_index_id_order_index on index_field ("index_id", "order_index");
 
 create table "row"
 (
@@ -89,7 +90,7 @@ create table "row"
     date_inserted timestamp not null default now(),
     date_updated timestamp,
     table_id int not null,
-    constraint fk_table_id foreign key (table_id) references "table" (id)
+    constraint fk_table_id foreign key (table_id) references "table" (id) on delete cascade
 );
 
 CREATE table data_int
@@ -97,7 +98,7 @@ CREATE table data_int
     field_id int not null,
     row_ui int not null,
     value int,
-    constraint fk_field_id foreign key (field_id) references field (id),
+    constraint fk_field_id foreign key (field_id) references field (id) on delete cascade,
     constraint fk_row_ui foreign key (row_ui) references "row" (ui) on delete cascade
 );
 
@@ -106,7 +107,7 @@ CREATE table data_string
     field_id int not null,
     row_ui int not null,
     value varchar(255),
-    constraint fk_field_id foreign key (field_id) references field (id),
+    constraint fk_field_id foreign key (field_id) references field (id) on delete cascade,
     constraint fk_row_ui foreign key (row_ui) references "row" (ui) on delete cascade
 );
 
@@ -115,7 +116,7 @@ CREATE table data_timestamp
     field_id int not null,
     row_ui int not null,
     value timestamp,
-    constraint fk_field_id foreign key (field_id) references field (id),
+    constraint fk_field_id foreign key (field_id) references field (id) on delete cascade,
     constraint fk_row_ui foreign key (row_ui) references "row" (ui) on delete cascade
 );
 
@@ -124,7 +125,7 @@ CREATE table data_bool
     field_id int not null,
     row_ui int not null,
     value boolean,
-    constraint fk_field_id foreign key (field_id) references field (id),
+    constraint fk_field_id foreign key (field_id) references field (id) on delete cascade,
     constraint fk_row_ui foreign key (row_ui) references "row" (ui) on delete cascade
 );
 
@@ -133,7 +134,7 @@ CREATE table data_float
     field_id int not null,
     row_ui int not null,
     value float,
-    constraint fk_field_id foreign key (field_id) references field (id),
+    constraint fk_field_id foreign key (field_id) references field (id) on delete cascade,
     constraint fk_row_ui foreign key (row_ui) references "row" (ui) on delete cascade
 );
 
@@ -142,7 +143,7 @@ CREATE table data_text
     field_id int not null,
     row_ui int not null,
     value text,
-    constraint fk_field_id foreign key (field_id) references field (id),
+    constraint fk_field_id foreign key (field_id) references field (id) on delete cascade,
     constraint fk_row_ui foreign key (row_ui) references "row" (ui) on delete cascade
 );
 
@@ -159,28 +160,44 @@ create table relation_type
     name varchar(100) not null
 );
 
-create table relation
+create table complex_relation
 (
     id serial primary key,
     name varchar(100) not null,
+    cascade_delete bool not null,
     relation_type_id int not null,
     constraint fk_relation_type_id foreign key (relation_type_id) references relation_type (id)
 );
 
-create unique index ux_name_relation on relation ("name");
+create unique index ux_name_complex_relation on complex_relation ("name");
 
-create table relation_keys
+create table complex_relation_keys
 (
-    relation_id int not null,
+    complex_relation_id int not null,
     field_id_pk int not null,
     field_id_fk int not null,
-    constraint fk_relation_id foreign key (relation_id) references relation (id),
+    constraint fk_relation_id foreign key (complex_relation_id) references complex_relation (id) on delete cascade,
     constraint fk_field_id_pk foreign key (field_id_pk) references field (id),
     constraint fk_field_id_fk foreign key (field_id_fk) references field (id)
 );
 
-create unique index ux_relation_id_field_id_pk_field_id_fk on relation_keys ("relation_id", "field_id_pk", "field_id_fk");
+create unique index ux_complex_relation_id_field_id_pk_field_id_fk on complex_relation_keys ("complex_relation_id", "field_id_pk", "field_id_fk");
 
+create table simple_relation
+(
+    id serial primary key,
+    name varchar(100) not null,
+    cascade_delete bool not null,
+    relation_type_id int not null,
+    table_id_pk int not null,
+    table_id_fk int not null,
+    constraint fk_relation_type_id foreign key (relation_type_id) references relation_type (id),
+    constraint fk_table_id_pk foreign key (table_id_pk) references "table" (id),
+    constraint fk_table_id_fk foreign key (table_id_fk) references "table" (id)
+);
+
+create unique index ux_name_simple_relation on simple_relation ("name");
+create unique index ux_table_id_pk_table_id_fk on simple_relation ("table_id_pk", "table_id_fk");
 
 create table workflow
 (

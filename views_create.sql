@@ -1,3 +1,8 @@
+drop view if exists v_schema;
+drop view if exists v_simple_relations;
+drop view if exists v_complex_relations;
+drop view if exists v_indexes;
+
 create view v_schema as
     select
         t.id as table_id,
@@ -7,17 +12,49 @@ create view v_schema as
         dt.name as data_type
     from "table" t
     inner join field f on f.table_id = t.id
-    inner join data_type dt on dt.id = f.data_type_id
-    union
+    inner join data_type dt on dt.id = f.data_type_id;
+
+create view v_simple_relations as
     select
-        r.id as table_id, 
-        r.name as table_name,
-        f.id as field_id,
+        r.id as relation_id,
+        r.name as relation_name,
+        r.cascade_delete as cascade_delete,
+        t.name as relation_type,
+        pk.id as pk_id,
+        pk.name as pk_name,
+        fk.id as fk_id,
+        fk.name as fk_name
+    from simple_relation r
+    inner join relation_type t on t.id = r.relation_type_id
+    inner join "table" pk on pk.id = r.table_id_pk
+    inner join "table" fk on fk.id = r.table_id_fk;
+
+create view v_complex_relations as
+    select
+        r.id as relation_id,
+        r.name as relation_name,
+        r.cascade_delete as cascade_delete,
+        t.name as relation_type,
+        pk.id as pk_id,
+        pk.name as pk_name,
+        fk.id as fk_id,
+        fk.name as fk_name
+    from complex_relation r
+    inner join relation_type t on t.id = r.relation_type_id
+    inner join complex_relation_keys k on k.complex_relation_id = r.id
+    inner join field pk on pk.id = k.field_id_pk
+    inner join field fk on fk.id = k.field_id_fk;
+
+create view v_indexes as
+    select
+        i.id as index_id,
+        i.name as index_name,
+        i.unique as unique_index,
+        t.name as table_name,
         f.name as field_name,
-        dt.name as data_type
-    from relation r
-    inner join relation_keys rk on rk.relation_id = r.id
-    inner join field f on f.id = rk.field_id_pk
-    inner join data_type dt on dt.id = f.data_type_id
-    inner join relation_type rt on rt.id = r.relation_type_id
-    where rt.name = 'MANY_TO_MANY';
+        ft.name as field_type
+    from "index" i
+    inner join "table" t on t.id = i.table_id
+    inner join index_field fi on fi.index_id = i.id
+    inner join index_field_type ft on ft.id = fi.index_field_type_id
+    inner join field f on f.id = fi.field_id;

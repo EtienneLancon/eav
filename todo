@@ -1,5 +1,6 @@
- => remove id from create_insert (asks some questions and i need some rest)
+ 
+ => materialized view update on index table change
+ => better way to handle materialized views recreation
  => function create_update
- => index view
- => add indexes on materialized views
+ => handle complex relations
  => probably more
