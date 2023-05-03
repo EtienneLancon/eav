@@ -50,7 +50,9 @@ create view v_indexes as
         i.id as index_id,
         i.name as index_name,
         i.unique as unique_index,
+        fi.id as index_field_id,
         t.name as table_name,
+        f.id as field_id,
         f.name as field_name,
         ft.name as field_type
     from "index" i
