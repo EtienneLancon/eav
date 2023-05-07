@@ -23,6 +23,7 @@ returns trigger
 language plpgsql
 as $function$
 begin
+    
     perform create_materialized_view(old.table_id);
     perform create_insert(old.table_id);
     return null;

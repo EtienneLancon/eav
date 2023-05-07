@@ -10,12 +10,12 @@ insert into "field" ("name", "table_id", "data_type_id") values
 
 insert into simple_relation ("name", cascade_delete, relation_type_id, table_id_pk, table_id_fk) values ('ville_personne', true, 2, 1, 2);
 
-insert into "index" ("name", "unique", "table_id") values ('personne_nom_prenom', true, 2);
-insert into index_field (index_id, field_id, index_field_type_id) values (1, 3, 1);
-insert into index_field (index_id, field_id, index_field_type_id) values (1, 4, 1);
-insert into "index" ("name", "unique", "table_id") values ('ville_code_postal', true, 1);
-insert into index_field (index_id, field_id, index_field_type_id) values (2, 2, 1);
-insert into index_field (index_id, field_id, index_field_type_id) values (2, 1, 2);
+insert into "index" ("name", "unique") values ('personne_nom_prenom', true);
+insert into index_field (index_id, field_id, index_field_type_id, order_index) values (1, 3, 1, 1);
+insert into index_field (index_id, field_id, index_field_type_id, order_index) values (1, 4, 1, 2);
+insert into "index" ("name", "unique") values ('ville_code_postal', true);
+insert into index_field (index_id, field_id, index_field_type_id, order_index) values (2, 2, 1, 1);
+insert into index_field (index_id, field_id, index_field_type_id, order_index) values (2, 1, 2, 1);
 
 
 select insert_ville(75000, 'Paris');

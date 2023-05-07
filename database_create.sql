@@ -44,7 +44,7 @@ create table field
     name varchar(100) not null,
     table_id int not null,
     data_type_id int not null,
-    constraint fk_table_id foreign key (table_id) references "table" (id),
+    constraint fk_table_id foreign key (table_id) references "table" (id) on delete cascade,
     constraint fk_data_type_id foreign key (data_type_id) references data_type (id)
 );
 
@@ -54,12 +54,8 @@ create table "index"
 (
     id serial primary key,
     name varchar(100) not null,
-    table_id int not null,
-    "unique" bool not null,
-    constraint fk_table_id foreign key (table_id) references "table" (id) on delete cascade
+    "unique" bool not null
 );
-
-create unique index ux_index_name_table_id on "index" ("name", "table_id");
 
 create table index_field_type
 (

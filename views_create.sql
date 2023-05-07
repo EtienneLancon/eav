@@ -56,7 +56,7 @@ create view v_indexes as
         f.name as field_name,
         ft.name as field_type
     from "index" i
-    inner join "table" t on t.id = i.table_id
     inner join index_field fi on fi.index_id = i.id
     inner join index_field_type ft on ft.id = fi.index_field_type_id
-    inner join field f on f.id = fi.field_id;
+    inner join field f on f.id = fi.field_id
+    inner join "table" t on t.id = f.table_id;

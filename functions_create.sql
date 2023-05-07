@@ -57,9 +57,11 @@ declare
         and relation_type = 'ONE_TO_ONE';
 
     cindex cursor for
-        select id
-        from "index"
-        where table_id = modified_table_id;
+        select i.id
+        from "index" i
+        inner join index_field on i.id = index_field.index_id
+        inner join field on index_field.field_id = field.id
+        where field.table_id = modified_table_id;
 
     query text;
     query_int text;
@@ -372,12 +374,12 @@ begin
 
     close ctext;
 
-    query := substring(query, 1, length(query)-2) || ') returns void language plpgsql as $$ ';
+    query := substring(query, 1, length(query)-2) || ') returns int language plpgsql as $$ ';
     query := query || 'declare row_ui int; ';
     query := query || 'begin ';
     query := query || 'insert into "row" (table_id) values (' || modified_table_id || ') returning ui into row_ui; ';
     query := query || insertsint || insertsstr || insertsts || insertsbool || insertsfloat || insertstext;
-    query := query || format('refresh materialized view concurrently %I_mv', table_name) || '; end; $$;';
+    query := query || format('refresh materialized view concurrently %I_mv', table_name) || '; return row_ui; end; $$;';
 
 
     execute format('drop function if exists insert_%I', table_name);
