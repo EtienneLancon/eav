@@ -22,10 +22,21 @@ create or replace function on_field_delete_create_materialized_views()
 returns trigger
 language plpgsql
 as $function$
+declare
+    table_name varchar(100);
+    query varchar(1000);
 begin
-    
-    perform create_materialized_view(old.table_id);
-    perform create_insert(old.table_id);
+    if exists (select 1 from field where table_id = old.table_id) then
+        perform create_materialized_view(old.table_id);
+        perform create_insert(old.table_id);
+    else
+        select "name" into table_name
+        from "table"
+        where id = old.table_id;
+
+        query := 'drop materialized view if exists ' || table_name || '_mv';
+        execute query;
+    end if;
     return null;
 end;
 $function$
