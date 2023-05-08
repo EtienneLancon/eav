@@ -21,11 +21,40 @@ drop table if exists "row";
 drop table if exists field;
 drop table if exists data_type;
 drop table if exists "table";
+drop table if exists conf;
+drop table if exists mv_data_lazyness;
+drop table if exists mv_struct_lazyness;
+
+create table mv_struct_lazyness
+(
+    id serial primary key,
+    name varchar(20) not null
+);
+
+create unique index ux_name_mv_struct_lazyness on lazyness ("name");
+
+create table mv_data_lazyness
+(
+    id serial primary key,
+    name varchar(20) not null
+);
+
+create unique index ux_name_mv_data_lazyness on lazyness ("name");
+
+create table conf
+(
+    mv_data_lazyness_id int not null,
+    mv_struct_lazyness_id int not null,
+    constraint fk_mv_data_lazyness_id foreign key (mv_data_lazyness_id) references mv_data_lazyness (id),
+    constraint fk_mv_struct_lazyness_id foreign key (mv_struct_lazyness_id) references mv_struct_lazyness (id)
+);
 
 create table "table"
 (
 	id serial primary key,
-	name varchar(100) not null
+	name varchar(100) not null,
+    struct_uptodate bool not null,
+    data_uptodate bool not null,
 );
 
 create unique index ux_name on "table" ("name");

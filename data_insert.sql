@@ -1,3 +1,20 @@
+insert into mv_data_lazyness
+(name)
+values
+('EAGER'),
+('LAZY');
+
+insert into mv_struct_lazyness
+(name)
+values
+('EAGER'),
+('LAZY');
+
+insert into conf
+(mv_data_lazyness_id, mv_struct_lazyness_id)
+values
+(2, 2);
+
 insert into relation_type
 (name) 
 values 

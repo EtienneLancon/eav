@@ -4,15 +4,39 @@ drop trigger if exists on_simple_relation_insert_create_field on simple_relation
 drop trigger if exists on_simple_relation_delete_delete_field on simple_relation;
 drop trigger if exists on_index_field_insert_update on index_field;
 drop trigger if exists on_index_field_delete on index_field;
+drop trigger if exists on_conf_insert on conf;
 
+
+create or replace function on_conf_insert()
+returns trigger
+language plpgsql
+as $function$
+begin
+    if exists (select 1 from conf) then
+        raise exception 'There can be only one row in conf table';
+    end if;
+    return null;
+end;
+$function$
+;
 
 create or replace function on_field_insert_update_create_materialized_views()
 returns trigger
 language plpgsql
 as $function$
+declare
+    lazyness varchar(20);
 begin
-    perform create_materialized_view(new.table_id);
-    perform create_insert(new.table_id);
+    select struct_lazyness into lazyness
+    from conf;
+
+    if(lazyness = 'EAGER') then
+        perform create_materialized_view(new.table_id);
+        perform create_insert(new.table_id);
+    else
+        update "table" set uptodate = false where id = new.table_id;
+    end if;
+
     return null;
 end;
 $function$
@@ -25,18 +49,28 @@ as $function$
 declare
     table_name varchar(100);
     query varchar(1000);
+    lazyness varchar(20);
 begin
-    if exists (select 1 from field where table_id = old.table_id) then
-        perform create_materialized_view(old.table_id);
-        perform create_insert(old.table_id);
-    else
-        select "name" into table_name
-        from "table"
-        where id = old.table_id;
+    select struct_lazyness into lazyness
+    from conf;
 
-        query := 'drop materialized view if exists ' || table_name || '_mv';
-        execute query;
+    if(lazyness = 'EAGER') then
+
+        if exists (select 1 from field where table_id = old.table_id) then
+            perform create_materialized_view(old.table_id);
+            perform create_insert(old.table_id);
+        else
+            select "name" into table_name
+            from "table"
+            where id = old.table_id;
+
+            query := 'drop materialized view if exists ' || table_name || '_mv';
+            execute query;
+        end if;
+    else
+        update "table" set uptodate = false where id = old.table_id;
     end if;
+    
     return null;
 end;
 $function$
@@ -177,3 +211,8 @@ create trigger on_index_field_delete
     after delete on index_field
     for each row
     execute function on_index_field_delete();
+
+create trigger on_conf_insert
+    before insert on conf
+    for each row
+    execute function on_conf_insert();

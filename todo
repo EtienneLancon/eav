@@ -1,4 +1,6 @@
  => better way to handle materialized views recreation
+ => change materialized view name when updating name field of "table"
+ => change materialized view column name whend changing field name
  => function create_update
  => handle complex relations
  => probably more

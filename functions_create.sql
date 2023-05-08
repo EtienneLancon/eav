@@ -80,7 +80,10 @@ declare
     related_table_name varchar(100);
     from_clause_inserted varchar(20);
     index_id int;
-begin    
+begin
+    if not exists (select 1 from "table" where id = modified_table_id and struct_uptodate = false) then
+        return;
+    end if;
 
     columns_query := '';
     query := ' from "row" ';
@@ -294,6 +297,7 @@ declare
     field_name varchar(100);
     data_type varchar(100);
     table_name varchar(100);
+    lazyness varchar(20);
     query text;
     insertsint text;
     insertsstr text;
@@ -305,6 +309,9 @@ begin
     select t."name" into table_name 
     from "table" t
     where t.id = modified_table_id;
+
+    select data_lazyness into lazyness
+    from conf;
 
     query := 'create function insert_' || table_name || '(';
 
@@ -379,7 +386,14 @@ begin
     query := query || 'begin ';
     query := query || 'insert into "row" (table_id) values (' || modified_table_id || ') returning ui into row_ui; ';
     query := query || insertsint || insertsstr || insertsts || insertsbool || insertsfloat || insertstext;
-    query := query || format('refresh materialized view concurrently %I_mv', table_name) || '; return row_ui; end; $$;';
+
+    if lazyness = 'LAZY' then
+        query := query || 'update table "table" set data_uptodate = false where id = ' || modified_table_id || '; ';
+    else
+        query := query || format('refresh materialized view concurrently %I_mv', table_name) || '; ';
+    end if;
+
+    query := query || 'return row_ui; end; $$;';
 
 
     execute format('drop function if exists insert_%I', table_name);

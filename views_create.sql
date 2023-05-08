@@ -2,6 +2,7 @@ drop view if exists v_schema;
 drop view if exists v_simple_relations;
 drop view if exists v_complex_relations;
 drop view if exists v_indexes;
+drop view if exists v_lazyness;
 
 create view v_schema as
     select
@@ -60,3 +61,11 @@ create view v_indexes as
     inner join index_field_type ft on ft.id = fi.index_field_type_id
     inner join field f on f.id = fi.field_id
     inner join "table" t on t.id = f.table_id;
+
+create view v_lazyness as
+    select
+        s.name as struct_lazyness,
+        d.name as data_lazyness
+    from conf c
+    inner join mv_data_lazyness d on d.id = c.mv_data_lazyness_id
+    inner join mv_struct_lazyness s on s.id = c.mv_struct_lazyness_id;
