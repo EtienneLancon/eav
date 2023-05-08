@@ -31,7 +31,7 @@ create table mv_struct_lazyness
     name varchar(20) not null
 );
 
-create unique index ux_name_mv_struct_lazyness on lazyness ("name");
+create unique index ux_name_mv_struct_lazyness on mv_struct_lazyness ("name");
 
 create table mv_data_lazyness
 (
@@ -39,7 +39,7 @@ create table mv_data_lazyness
     name varchar(20) not null
 );
 
-create unique index ux_name_mv_data_lazyness on lazyness ("name");
+create unique index ux_name_mv_data_lazyness on mv_data_lazyness ("name");
 
 create table conf
 (
@@ -53,8 +53,8 @@ create table "table"
 (
 	id serial primary key,
 	name varchar(100) not null,
-    struct_uptodate bool not null,
-    data_uptodate bool not null,
+    struct_uptodate bool not null default false,
+    data_uptodate bool not null default true
 );
 
 create unique index ux_name on "table" ("name");

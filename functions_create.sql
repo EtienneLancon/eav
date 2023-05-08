@@ -248,6 +248,8 @@ begin
     end loop;
 
     close cindex;
+
+    update "table" set struct_uptodate = true where id = modified_table_id;
 end;
 $function$
 ;
@@ -311,7 +313,7 @@ begin
     where t.id = modified_table_id;
 
     select data_lazyness into lazyness
-    from conf;
+    from v_lazyness;
 
     query := 'create function insert_' || table_name || '(';
 
@@ -468,6 +470,32 @@ begin
     end if;
 
     execute query;
+end;
+$function$
+;
+
+
+create or replace function refresh_tables()
+returns void
+language plpgsql
+as $function$
+declare
+    c cursor for
+        select id
+        from "table"
+        where struct_uptodate = false;
+
+    table_id int;
+
+begin
+    open c;
+    loop
+        fetch c into table_id;
+        exit when not found;
+        perform create_materialized_view(table_id);
+        perform create_insert(table_id);
+    end loop;
+    close c;
 end;
 $function$
 ;

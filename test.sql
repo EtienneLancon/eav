@@ -1,3 +1,16 @@
+delete from "table";
+delete from "field";
+delete from "index";
+delete from "index_field";
+delete from "simple_relation";
+
+alter sequence "table_id_seq" restart with 1;
+alter sequence "field_id_seq" restart with 1;
+alter sequence "index_id_seq" restart with 1;
+alter sequence "index_field_id_seq" restart with 1;
+alter sequence "simple_relation_id_seq" restart with 1;
+
+
 insert into "table" ("name") values ('ville');
 insert into "table" ("name") values ('personne');
 
@@ -16,6 +29,9 @@ insert into index_field (index_id, field_id, index_field_type_id, order_index) v
 insert into "index" ("name", "unique") values ('ville_code_postal', true);
 insert into index_field (index_id, field_id, index_field_type_id, order_index) values (2, 2, 1, 1);
 insert into index_field (index_id, field_id, index_field_type_id, order_index) values (2, 1, 2, 1);
+
+
+select refresh_tables();
 
 
 select insert_ville(75000, 'Paris');

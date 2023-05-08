@@ -13,7 +13,7 @@ values
 insert into conf
 (mv_data_lazyness_id, mv_struct_lazyness_id)
 values
-(2, 2);
+(1, 2);
 
 insert into relation_type
 (name) 

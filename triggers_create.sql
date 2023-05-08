@@ -15,7 +15,7 @@ begin
     if exists (select 1 from conf) then
         raise exception 'There can be only one row in conf table';
     end if;
-    return null;
+    return new;
 end;
 $function$
 ;
@@ -28,13 +28,13 @@ declare
     lazyness varchar(20);
 begin
     select struct_lazyness into lazyness
-    from conf;
+    from v_lazyness;
 
     if(lazyness = 'EAGER') then
         perform create_materialized_view(new.table_id);
         perform create_insert(new.table_id);
     else
-        update "table" set uptodate = false where id = new.table_id;
+        update "table" set struct_uptodate = false where id = new.table_id;
     end if;
 
     return null;
@@ -52,7 +52,7 @@ declare
     lazyness varchar(20);
 begin
     select struct_lazyness into lazyness
-    from conf;
+    from v_lazyness;
 
     if(lazyness = 'EAGER') then
 
@@ -68,7 +68,7 @@ begin
             execute query;
         end if;
     else
-        update "table" set uptodate = false where id = old.table_id;
+        update "table" set struct_uptodate = false where id = old.table_id;
     end if;
     
     return null;
@@ -129,23 +129,40 @@ declare
     query varchar(1000);
     id_index int;
     index_name varchar(100);
+    lazyness varchar(20);
+    table_id int;
 begin
-    select into id_index, index_name
-        v.index_id, p.indexname
-    from v_indexes v
-    left join pg_indexes p on p.indexname = v.index_name
-    where v.index_id = new.index_id
-    limit 1;
+    select struct_lazyness into lazyness
+    from v_lazyness;
 
-    if index_name is not null then
-        query := 'drop index ' || index_name || ';';
+    if lazyness = 'EAGER' then
+
+        select into id_index, index_name
+            v.index_id, p.indexname
+        from v_indexes v
+        left join pg_indexes p on p.indexname = v.index_name
+        where v.index_id = new.index_id
+        limit 1;
+
+        if index_name is not null then
+            query := 'drop index ' || index_name || ';';
+            execute query;
+        end if;
+
+        query := 'select create_index(' || new.index_id || ');';
         execute query;
+
+        return null;
+    else
+        select t.id into table_id
+        from "table" t
+        inner join field f on f.table_id = t.id
+        inner join index_field i on i.field_id = f.id
+        where i.id = new.index_id;
+
+        update "table" set struct_uptodate = false where id = table_id;
+        return null;
     end if;
-
-    query := 'select create_index(' || new.index_id || ');';
-    execute query;
-
-    return null;
 end;
 $function$
 ;
@@ -158,25 +175,42 @@ declare
     query varchar(1000);
     id_index int;
     index_name varchar(100);
+    lazyness varchar(20);
+    table_id int;
 begin
-    select into id_index, index_name
-        v.index_id, p.indexname
-    from v_indexes v
-    left join pg_indexes p on p.indexname = v.index_name
-    where v.index_id = old.index_id
-    limit 1;
+    select struct_lazyness into lazyness
+    from v_lazyness;
 
-    if index_name is not null then
-        query := 'drop index ' || index_name || ';';
-        execute query;
+    if lazyness = 'EAGER' then
+
+        select into id_index, index_name
+            v.index_id, p.indexname
+        from v_indexes v
+        left join pg_indexes p on p.indexname = v.index_name
+        where v.index_id = old.index_id
+        limit 1;
+
+        if index_name is not null then
+            query := 'drop index ' || index_name || ';';
+            execute query;
+        end if;
+
+        if id_index is not null then
+            query := 'select create_index(' || old.index_id || ');';
+            execute query;
+        end if;
+
+        return null;
+    else
+        select t.id into table_id
+        from "table" t
+        inner join field f on f.table_id = t.id
+        inner join index_field i on i.field_id = f.id
+        where i.id = new.index_id;
+
+        update "table" set struct_uptodate = false where id = table_id;
+        return null;
     end if;
-
-    if id_index is not null then
-        query := 'select create_index(' || old.index_id || ');';
-        execute query;
-    end if;
-
-    return null;
 end;
 $function$
 ;
