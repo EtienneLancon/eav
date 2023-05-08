@@ -5,7 +5,45 @@ drop trigger if exists on_simple_relation_delete_delete_field on simple_relation
 drop trigger if exists on_index_field_insert_update on index_field;
 drop trigger if exists on_index_field_delete on index_field;
 drop trigger if exists on_conf_insert on conf;
+drop trigger if exists before_insert_index_field on index_field;
 
+
+create or replace function before_insert_index_field()
+returns trigger
+language plpgsql
+as $function$
+declare
+    existing_index_field_table_id int;
+    new_index_field_table_id int;
+    existing_index_field_table_name varchar(100);
+    new_index_field_table_name varchar(100);
+begin
+    select table_id, table_name into existing_index_field_table_id
+    from v_indexes
+    where index_id = new.index_id;
+
+    if existing_index_field_table_id is not null then
+        select table_id into new_index_field_table_id
+        from field f
+        where f.id = new.field_id;
+
+        if existing_index_field_table_id <> new_index_field_table_id then
+            select "name" into existing_index_field_table_name
+            from "table"
+            where id = existing_index_field_table_id;
+
+            select "name" into new_index_field_table_name
+            from "table"
+            where id = new_index_field_table_id;
+
+            raise exception 'All index fields must be from the same table -- existing % (id %) -- new % (id %)', existing_index_field_table_name, existing_index_field_table_id, new_index_field_table_name, new_index_field_table_id;
+        end if;
+    end if;
+    
+    return new;
+end;
+$function$
+;        
 
 create or replace function on_conf_insert()
 returns trigger
@@ -250,3 +288,8 @@ create trigger on_conf_insert
     before insert on conf
     for each row
     execute function on_conf_insert();
+
+create trigger before_insert_index_field
+    before insert on index_field
+    for each row
+    execute function before_insert_index_field();

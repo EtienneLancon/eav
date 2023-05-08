@@ -1,8 +1,8 @@
+delete from "simple_relation";
 delete from "table";
 delete from "field";
 delete from "index";
 delete from "index_field";
-delete from "simple_relation";
 
 alter sequence "table_id_seq" restart with 1;
 alter sequence "field_id_seq" restart with 1;
