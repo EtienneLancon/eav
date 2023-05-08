@@ -78,7 +78,7 @@ create table index_field
 );
 
 create unique index ux_index_id_field_id on index_field ("index_id", "field_id");
-create unique index ux_index_id_order_index on index_field ("index_id", "order_index");
+create unique index ux_index_id_order_index on index_field ("index_id", "index_field_type_id", "order_index");
 
 create table "row"
 (

@@ -215,7 +215,7 @@ begin
     loop
         fetch crelatedmany into related_table_name;
         exit when not found;
-        non_unique_indexes := non_unique_indexes || 'create index ix_' || related_table_name || '_mv_ui on ' || table_name || '_mv (' || related_table_name || '_ui); ';
+        non_unique_indexes := non_unique_indexes || 'create index fk_ix_' || related_table_name || '_mv_ui on ' || table_name || '_mv (' || related_table_name || '_ui); ';
     end loop;
 
     close crelatedmany;
@@ -226,7 +226,7 @@ begin
     loop
         fetch crelatedone into related_table_name;
         exit when not found;
-        unique_indexes := unique_indexes || 'create unique index ux_' || related_table_name || '_mv_ui on ' || table_name || '_mv (' || related_table_name || '_ui); ';
+        unique_indexes := unique_indexes || 'create unique index fk_ux_' || related_table_name || '_mv_ui on ' || table_name || '_mv (' || related_table_name || '_ui); ';
     end loop;
 
     close crelatedone;
@@ -423,8 +423,6 @@ begin
             raise exception 'Unknown field type %', index_type;
         end if;
 
-
-        
     end loop;
 
     close cindexdef;
@@ -440,7 +438,8 @@ begin
     where index_id = id_index
     limit 1;
 
-    query := 'index if not exists ' || name_index|| ' on ' || index_table || '_mv (' || fields_mapping || ') ';
+
+    query := ' on ' || index_table || '_mv (' || fields_mapping || ') ';
 
     if fields_include <> '' then
         query := query || 'include (' || fields_include || ');';
@@ -449,9 +448,9 @@ begin
     end if;
 
     if index_unique then
-        query := 'create unique ' || query;
+        query := 'create unique index if not exists ux_'|| name_index || query;
     else
-        query := 'create ' || query;
+        query := 'create index if not exists ix_' || query;
     end if;
 
     execute query;

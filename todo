@@ -1,5 +1,3 @@
- 
- => materialized view update on index table change
  => better way to handle materialized views recreation
  => function create_update
  => handle complex relations
