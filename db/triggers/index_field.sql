@@ -1,3 +1,5 @@
+set search_path to eav;
+
 drop trigger if exists on_index_field_insert_update on index_field;
 drop trigger if exists on_index_field_delete on index_field;
 drop trigger if exists before_insert_index_field on index_field;

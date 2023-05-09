@@ -1,3 +1,5 @@
+set search_path to eav;
+
 drop function if exists create_materialized_view;
 
 CREATE FUNCTION create_materialized_view(modified_table_id int)

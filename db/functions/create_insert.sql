@@ -1,3 +1,5 @@
+set search_path to eav;
+
 drop function if exists create_insert(int);
 
 create function create_insert(modified_table_id int)

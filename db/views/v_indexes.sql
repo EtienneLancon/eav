@@ -1,3 +1,5 @@
+set search_path to eav;
+
 drop view if exists v_indexes;
 
 create view v_indexes as

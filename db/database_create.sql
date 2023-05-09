@@ -1,3 +1,5 @@
+set search_path to eav;
+
 drop table if exists trigger_actions;
 drop table if exists trigger_function;
 drop table if exists "trigger";

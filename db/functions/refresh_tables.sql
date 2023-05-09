@@ -1,3 +1,5 @@
+set search_path to eav;
+
 drop function if exists refresh_tables;
 
 create function refresh_tables()

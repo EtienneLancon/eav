@@ -1,3 +1,5 @@
+set search_path to eav;
+
 drop function if exists create_index;
 
 create function create_index(id_index int)

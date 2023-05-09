@@ -1,3 +1,5 @@
+set search_path to eav;
+
 drop trigger if exists on_simple_relation_insert_create_field on simple_relation;
 drop trigger if exists on_simple_relation_delete_delete_field on simple_relation;
 

@@ -1,3 +1,5 @@
+set search_path to eav;
+
 drop view if exists v_simple_relations;
 
 create view v_simple_relations as

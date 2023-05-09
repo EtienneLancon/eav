@@ -1,3 +1,5 @@
+set search_path to eav;
+
 drop trigger if exists on_field_insert_update_create_materialized_views on field;
 drop trigger if exists on_field_delete_create_materialized_views on field;
 

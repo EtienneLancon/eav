@@ -1,3 +1,5 @@
+set search_path to eav;
+
 delete from "simple_relation";
 delete from "table";
 delete from "field";

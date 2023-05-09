@@ -1,3 +1,5 @@
+set search_path to eav;
+
 drop trigger if exists on_conf_insert on conf;
 
 create or replace function on_conf_insert()
