@@ -63,12 +63,6 @@ declare
         where field.table_id = modified_table_id;
 
     query text;
-    query_int text;
-    query_str text;
-    query_ts text;
-    query_bool text;
-    query_float text;
-    query_text text;
     select_query text;
     columns_query text;
     columns_final text;
@@ -77,7 +71,6 @@ declare
     field_name varchar(100);
     table_name varchar(100);
     related_table_name varchar(100);
-    from_clause_inserted varchar(20);
     index_id int;
 begin
     if not exists (select 1 from "table" where id = modified_table_id and struct_uptodate = false) then
