@@ -1,31 +1,8 @@
-set search_path to eav;
+drop schema if exists eav cascade;
 
-drop table if exists trigger_actions;
-drop table if exists trigger_function;
-drop table if exists "trigger";
-drop table if exists trigger_type;
-drop table if exists workflow;
-drop table if exists data_int;
-drop table if exists data_string;
-drop table if exists data_int;
-drop table if exists data_string;
-drop table if exists data_timestamp;
-drop table if exists data_bool;
-drop table if exists data_float;
-drop table if exists data_text;
-drop table if exists relation_keys;
-drop table if exists relation;
-drop table if exists relation_type;
-drop table if exists index_field;
-drop table if exists index_field_type;
-drop table if exists "index";
-drop table if exists "row";
-drop table if exists field;
-drop table if exists data_type;
-drop table if exists "table";
-drop table if exists conf;
-drop table if exists mv_data_lazyness;
-drop table if exists mv_struct_lazyness;
+create schema eav;
+
+set search_path to eav;
 
 create table mv_struct_lazyness
 (
