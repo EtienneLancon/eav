@@ -1,13 +1,14 @@
 version: '3'
 
+name: eav
 services:
  database:
   container_name: postgresql
-  image: 'bitnami/postgresql'
+  build:
+      context: ./pg/
+      dockerfile: Dockerfile
   ports:
     - '5433:5432'
   env_file:
-    - './database.env'
-  volumes:
-    - ./code:/code
+    - './.env'
   restart: unless-stopped

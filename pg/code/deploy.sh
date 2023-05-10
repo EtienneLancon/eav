@@ -4,6 +4,7 @@ db=$POSTGRES_DB
 
 export PGPASSWORD=$POSTGRES_PASSWORD
 
+
 psql -h $host -U $user -d $db -f ./db/database_create.sql
 
 for f in ./db/views/*.sql;
