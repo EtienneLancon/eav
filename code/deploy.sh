@@ -1,6 +1,7 @@
-host=$(<./db/env/host)
-user=$(<./db/env/user)
-db=$(<./db/env/db)
+host=$POSTGRES_HOST
+user=$POSTGRES_USER
+db=$POSTGRES_DB
+export PGPASSWORD=$POSTGRES_PASSWORD
 
 psql -h $host -U $user -d $db -f ./db/database_create.sql
 
