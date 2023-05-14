@@ -2,7 +2,7 @@ version: '3'
 
 services:
   database:
-    container_name: postgresql
+    container_name: pgserver
     image: 'bitnami/postgresql'
     ports:
       - '5433:5432'
@@ -11,7 +11,7 @@ services:
     restart: unless-stopped
   
   pgsql:
-    container_name: pgsql
+    container_name: pgclient
     build:
       context: ./pgsql
       dockerfile: Dockerfile
@@ -20,6 +20,21 @@ services:
     env_file:
       - './.env'
     restart: no
+    depends_on:
+      - database
+
+  architect:
+    container_name: architect
+    build:
+      context: ./architect
+      dockerfile: Dockerfile
+    ports:
+      - 8001:8000
+    volumes:
+      - ./architect/code:/code
+    env_file:
+      - './.env'
+    restart: unless-stopped
     depends_on:
       - database
 
