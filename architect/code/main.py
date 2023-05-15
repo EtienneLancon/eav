@@ -1,11 +1,35 @@
+import psycopg2
+from psycopg2 import Error
+import os
+
 
 async def app(scope, receive, send):
     assert scope['type'] == 'http'
 
-    # Define the response
-    body = b"Hellooooo !"
+    try:
+        # Connect to an existing database
+        connection = psycopg2.connect(user=os.environ['POSTGRES_USER'],
+                                    password=os.environ['POSTGRES_PASSWORD'],
+                                    host=os.environ['POSTGRES_HOST'],
+                                    port=os.environ['POSTGRES_PORT'],
+                                    database=os.environ['POSTGRES_DB'])
+        # Create a cursor to perform database operations
+        cursor = connection.cursor()
+        # Print PostgreSQL details
+        body = b"PostgreSQL server information"
+        body = body + "\n" + str(connection.get_dsn_parameters())
+        # Executing a SQL query
+        cursor.execute("SELECT version();")
+        # Fetch result
+        record = cursor.fetchone()
+        body = body + "\nYou are connected to - " + record
+
+    except (Exception, Error) as error:
+        print("Error while connecting to PostgreSQL", error)
+
+    
     headers = [
-        (b'Content-Type', b'text/plain'),
+        (b'Content-Type', 'text/plain'),
         (b'Content-Length', str(len(body)).encode('utf-8'))
     ]
 
