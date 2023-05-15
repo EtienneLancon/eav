@@ -1,8 +1,5 @@
-import psycopg2
 from psycopg2 import Error
-import os
-import json
-import struct
+from db.connection import Connection
 
 
 async def app(scope, receive, send):
@@ -10,21 +7,15 @@ async def app(scope, receive, send):
 
     try:
         # Connect to an existing database
-        connection = psycopg2.connect(user=os.environ['POSTGRES_USER'],
-                                    password=os.environ['POSTGRES_PASSWORD'],
-                                    host=os.environ['POSTGRES_HOST'],
-                                    port=os.environ['POSTGRES_PORT'],
-                                    database=os.environ['POSTGRES_DB'])
         # Create a cursor to perform database operations
-        cursor = connection.cursor()
+        cursor = Connection.getCursor()
         # Print PostgreSQL details
         body = "PostgreSQL server information\n"
-        body = body + json.dumps(connection.get_dsn_parameters())
         # Executing a SQL query
         cursor.execute("SELECT version();")
         # Fetch result
         record = cursor.fetchone()
-        print("You are connected to - ", record, "\n")
+        
         body = body + "\nYou are connected to - " + record[0]
 
         body = body.encode('utf-8')
