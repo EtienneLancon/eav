@@ -1,6 +1,8 @@
 import psycopg2
 from psycopg2 import Error
 import os
+import json
+import struct
 
 
 async def app(scope, receive, send):
@@ -16,13 +18,16 @@ async def app(scope, receive, send):
         # Create a cursor to perform database operations
         cursor = connection.cursor()
         # Print PostgreSQL details
-        body = b"PostgreSQL server information"
-        body = body + "\n" + str(connection.get_dsn_parameters())
+        body = "PostgreSQL server information\n"
+        body = body + json.dumps(connection.get_dsn_parameters())
         # Executing a SQL query
         cursor.execute("SELECT version();")
         # Fetch result
         record = cursor.fetchone()
-        body = body + "\nYou are connected to - " + record
+        print("You are connected to - ", record, "\n")
+        body = body + "\nYou are connected to - " + record[0]
+
+        body = body.encode('utf-8')
 
     except (Exception, Error) as error:
         print("Error while connecting to PostgreSQL", error)
