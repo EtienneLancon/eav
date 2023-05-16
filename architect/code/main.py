@@ -1,28 +1,33 @@
 from psycopg2 import Error
-from db.connection import Connection
 from app.repository.mv_data_lazyness_repository import MvDataLazynessRepository
 from serializer.serializer import Serializer
 import json
+from db.connection import Connection
 
 async def app(scope, receive, send):
     assert scope['type'] == 'http'
 
+    body = ''
+
     try:
         repository = MvDataLazynessRepository()
 
-        body = ''
+        
 
         result = repository.select()
 
         json_object = Serializer().serialize(result, repository.columns)
 
+        repository.insert({'name': 'toto'})
+
         body = body + json.dumps(json_object)
 
-        body = body.encode('utf-8')
-
     except (Exception, Error) as error:
-        print("Error while connecting to PostgreSQL", error)
+        body = body + str(error)
+        Connection.rollback()
 
+
+    body = body.encode('utf-8')
     
     headers = [
         (b'Content-Type', 'text/plain'),
