@@ -1,22 +1,22 @@
 from psycopg2 import Error
 from db.connection import Connection
-
+from app.repository.mv_data_lazyness_repository import MvDataLazynessRepository
+from serializer.serializer import Serializer
+import json
 
 async def app(scope, receive, send):
     assert scope['type'] == 'http'
 
     try:
-        # Connect to an existing database
-        # Create a cursor to perform database operations
-        cursor = Connection.getCursor()
-        # Print PostgreSQL details
-        body = "PostgreSQL server information\n"
-        # Executing a SQL query
-        cursor.execute("SELECT version();")
-        # Fetch result
-        record = cursor.fetchone()
-        
-        body = body + "\nYou are connected to - " + record[0]
+        repository = MvDataLazynessRepository()
+
+        body = ''
+
+        result = repository.select()
+
+        json_object = Serializer().serialize(result, repository.columns)
+
+        body = body + json.dumps(json_object)
 
         body = body.encode('utf-8')
 

@@ -1,8 +1,6 @@
 from psycopg2 import connect
 import os
 
-
-
 class Connection:
     connection = None
     
